@@ -45,7 +45,7 @@
     </div>
   </nav>
   <div class="container mt-4">
-    <form action="/" method="post">
+    <form action="{{ url_for('home') }}" method="post">
       <div class="input-group mb-3">
         <input type="text" class="form-control" name="keyword" placeholder="Enter keyword ...." aria-label="Search">
         <button class="btn btn-outline-secondary" type="submit">Search</button>

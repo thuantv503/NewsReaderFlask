@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, render_template, request, session
 from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import requests
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -14,8 +15,8 @@ login_manager.login_view = 'login'
 # Cấu hình OAuth cho Google
 google = oauth.register(
     name='google',
-    client_id='407656307362-apq6bk4t62am8af3b4a0ea1q2ditbr1e.apps.googleusercontent.com',
-    client_secret='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',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
     access_token_url='https://oauth2.googleapis.com/token',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     authorize_params=None,
@@ -72,26 +73,6 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-
-@app.route('/home', methods=['GET', 'POST'])
-@login_required
-def home():
-    if request.method == "POST":
-        keyword = request.form.get('keyword')
-        articles = []
-        if keyword:
-            news_data = fetch_news(keyword)
-            if news_data:
-                articles = news_data.get('articles', [])
-        return render_template('home.html', all_articles=articles, keyword=keyword)
-    else:
-        articles = []
-        bbc_news_data = fetch_bbc_news()
-        if bbc_news_data:
-            articles = bbc_news_data.get('articles', [])
-        return render_template('home.html', all_headlines=articles)
-
-
 def fetch_news(query, page=1, page_size=20):
     params = {
         'q': query,
@@ -116,6 +97,27 @@ def fetch_bbc_news(page=1, page_size=20, sources='bbc-news'):
     if response.status_code == 200:
         return response.json()
     return None
+
+
+@app.route('/home', methods=['GET', 'POST'])
+@login_required
+def home():
+    if request.method == "POST":
+        keyword = request.form.get('keyword')
+        articles = []
+        if keyword:
+            news_data = fetch_news(keyword)
+            if news_data:
+                articles = news_data.get('articles', [])
+        return render_template('home.html', all_articles=articles, keyword=keyword)
+    else:
+        articles = []
+        bbc_news_data = fetch_bbc_news()
+        if bbc_news_data:
+            articles = bbc_news_data.get('articles', [])
+        return render_template('home.html', all_headlines=articles)
+
+
 
 
 if __name__ == '__main__':
